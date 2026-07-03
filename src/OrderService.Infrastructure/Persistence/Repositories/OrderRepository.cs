@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-public class OrderRepository : IOrderRepository
+namespace OrderService.Infrastructure.Persistence.Repositories
 {
-    private AppDbContext _context;
+    public class OrderRepository : IOrderRepository
+{
+    private readonly AppDbContext _context;
     public OrderRepository(AppDbContext context)
     {
         _context = context;
@@ -21,7 +23,8 @@ public class OrderRepository : IOrderRepository
 
     public async Task AddAsync(Order order)
     {
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
+        //don't save the changes here.
+        await _context.Orders.AddAsync(order);
     }
+}
 }

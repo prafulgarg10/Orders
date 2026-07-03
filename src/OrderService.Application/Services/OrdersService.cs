@@ -1,10 +1,16 @@
 
+using System.Text.Json;
+
 public class OrdersService : IOrderService
 {
     private IOrderRepository _repo;
-    public OrdersService(IOrderRepository repo)
+    private IOutboxRepository _outboxRepo;
+    private IUnitOfWork _unitOfWorkRepo;
+    public OrdersService(IOrderRepository repo, IOutboxRepository outboxRepository, IUnitOfWork unitOfWork)
     {
         _repo = repo;
+        _outboxRepo = outboxRepository;
+        _unitOfWorkRepo = unitOfWork;
     }
 
     public async Task<List<OrderResponse>> GetAllOrders()
@@ -45,6 +51,18 @@ public class OrdersService : IOrderService
         {
             Order order = new Order(orderRequest.Amount, 1);
             await _repo.AddAsync(order);
+
+            OutboxOrderPayload payload = new OutboxOrderPayload()
+            {
+                OrderNumber = order.OrderNumber,
+                CustomerId = order.CustomerId,
+                Amount = order.Amount
+            };
+            Outbox outbox = new Outbox(Event.OrderCreated, JsonSerializer.Serialize(payload));
+            await _outboxRepo.AddAsync(outbox);
+
+            await _unitOfWorkRepo.SaveChangesAsync();
+
             OrderResponse? response = await GetOrderDetail(order.OrderId);
             return response;
         }

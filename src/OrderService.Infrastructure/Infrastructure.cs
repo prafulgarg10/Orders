@@ -1,13 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrderService.Infrastructure.Persistence.Repositories;
 
 namespace OrderService.Infrastructure;
-
-public class Infrastructure
-{
-
-}
 
 public static class DependencyInjection
 {
@@ -18,6 +14,8 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DBConnection"));
         });
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOutboxRepository, OutboxRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 }

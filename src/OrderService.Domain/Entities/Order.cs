@@ -4,6 +4,7 @@ public class Order
 {
     [Key]
     public int OrderId {get; private set;}
+    public Guid OrderNumber {get; private set;}
     public int CustomerId {get; private set;}
     public decimal Amount {get; private set;}
     public Status Status {get; private set;}
@@ -19,6 +20,7 @@ public class Order
         CustomerId = customerId;
         Status = Status.Created;
         CreatedAt = DateTime.UtcNow;
+        OrderNumber = new Guid();
     }
 
     public void Complete()
