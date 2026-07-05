@@ -12,9 +12,9 @@ namespace OrderService.Infrastructure.Persistence.Repositories
         _context = context;
     }
 
-    public async Task<List<Order>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<List<Order>> GetAllAsync(int pageNumber, int pageSize, int customerId, CancellationToken cancellationToken)
     {
-        return await _context.Orders.ToListAsync(cancellationToken);
+        return await _context.Orders.Where(o => o.CustomerId==customerId).OrderByDescending(o => o.CreatedAt).Skip((pageNumber-1)*pageSize).Take(pageSize).ToListAsync();
     }
 
     public async Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken)
@@ -22,14 +22,10 @@ namespace OrderService.Infrastructure.Persistence.Repositories
         return await _context.Orders.FindAsync(id, cancellationToken);
     }
 
-    public async Task<GetQueryResult?> GetByOrderNumberAsync(Guid orderNumber, CancellationToken cancellationToken)
+    public async Task<Order?> GetByOrderNumberAsync(Guid orderNumber, CancellationToken cancellationToken)
     {
         var result = await _context.Orders.Where(o => o.OrderNumber==orderNumber).FirstOrDefaultAsync(cancellationToken);
-        if (result != null)
-        {
-            return new GetQueryResult(result.OrderId, result.Amount, result.Status.ToString(), result.CreatedAt);
-        }
-        return null;
+        return result;
     }
 
     public async Task AddAsync(Order order, CancellationToken cancellationToken)
