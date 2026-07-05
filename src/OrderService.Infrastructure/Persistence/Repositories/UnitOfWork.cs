@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using OrderService.Domain.Common;
 
 namespace OrderService.Infrastructure.Persistence.Repositories
 {
@@ -12,7 +14,28 @@ namespace OrderService.Infrastructure.Persistence.Repositories
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {
+            await AddDomainEventsToOutboxMessage(cancellationToken);
             return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task AddDomainEventsToOutboxMessage(CancellationToken cancellationToken)
+        {
+            //Get the entities extending BaseEntity and have DomainEvents.
+            var domainEvents = _context.ChangeTracker.Entries<BaseEntity>().Select(e => e.Entity)
+            .SelectMany(e => e.DomainEvents).ToList();
+
+            //Create the Outbox message here
+            foreach (var domainEvent in domainEvents)
+            {
+                var outbox = OutboxMessage.Create(domainEvent);
+                await _context.OutboxMessages.AddAsync(outbox, cancellationToken);
+            }
+
+            //clear the domain events
+            foreach(var entity in _context.ChangeTracker.Entries<BaseEntity>())
+            {
+                entity.Entity.ClearDomainEvents();
+            }
         }
     }
 }

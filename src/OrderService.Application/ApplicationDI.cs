@@ -1,17 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using OrderService.Application.Commands.CreateOrder;
 
 namespace OrderService.Application;
 
-public class Application
-{
-
-}
-
-public static class DependencyInjection
+public static class ApplicationDI
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<IOrderService, OrdersService>();
+        services.AddScoped<CreateOrderHandler>();
         return services;
     }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using OrderService.Domain.Common;
 
-public class Order
+public class Order : BaseEntity
 {
     [Key]
     public int OrderId {get; private set;}
@@ -20,7 +21,11 @@ public class Order
         CustomerId = customerId;
         Status = Status.Created;
         CreatedAt = DateTime.UtcNow;
-        OrderNumber = new Guid();
+        OrderNumber = Guid.NewGuid();
+
+        //For letting the unit of work to create the outbox entry
+        RaiseDomainEvent(new OrderCreatedEvent(OrderNumber, CustomerId, Amount));
+
     }
 
     public void Complete()

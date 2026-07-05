@@ -1,44 +1,33 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Application.Commands.CreateOrder;
 
 [Route("/")]
 public class OrderController : ControllerBase
 {
-    private IOrderService _orderService;
-    public OrderController(IOrderService orderService)
+    private CreateOrderHandler _handler;
+    public OrderController(CreateOrderHandler handler)
     {
-        _orderService = orderService;
+        _handler = handler;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Orders(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetOrders(CancellationToken cancellationToken)
     {
-        List<OrderResponse> response = await _orderService.GetAllOrders(cancellationToken);
-        return Ok(response);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Orders([FromRoute] int id, CancellationToken cancellationToken)
-    {
-        OrderResponse? response = await _orderService.GetOrderDetail(id, cancellationToken);
-        if (response != null)
-        {
-            return Ok(response);
-        }
-        return BadRequest();
+        return Ok();
     }
 
     [HttpPost]
-    public async Task<IActionResult> Orders([FromBody] OrderRequest orderRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] OrderRequest orderRequest, CancellationToken cancellationToken)
     {
-        OrderResponse? response = await _orderService.PlaceOrder(orderRequest, cancellationToken);
-        if (response != null)
-        {
-            return Ok(response);
-        }
-        else
-        {
-            return BadRequest();
-        }
+        var command = new CreateOrderCommand(orderRequest.CustomerId, orderRequest.Amount);
+        var result = await _handler.HandleAsync(command, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new {id = result.OrderNumber}, result);
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult GetById(Guid id)
+    {
+        return Ok();
     }
 }
