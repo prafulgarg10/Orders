@@ -22,10 +22,19 @@ public class Order : BaseEntity
         Status = Status.Created;
         CreatedAt = DateTime.UtcNow;
         OrderNumber = Guid.NewGuid();
+    }
 
+    public static Order Create(decimal amount, int customerId)
+    {
+        var order = new Order(amount, customerId);
+        order.MarkAsCreated();
+        return order;
+    }
+
+    private void MarkAsCreated()
+    {
         //For letting the unit of work to create the outbox entry
         RaiseDomainEvent(new OrderCreatedEvent(OrderNumber, CustomerId, Amount));
-
     }
 
     public void Complete()

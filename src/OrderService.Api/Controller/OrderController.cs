@@ -1,14 +1,17 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Application.Commands.CreateOrder;
+using OrderService.Application.Queries;
 
 [Route("/")]
 public class OrderController : ControllerBase
 {
     private CreateOrderHandler _handler;
-    public OrderController(CreateOrderHandler handler)
+    private GetQueryHandler _queryHandler;
+    public OrderController(CreateOrderHandler handler, GetQueryHandler queryHandler)
     {
         _handler = handler;
+        _queryHandler = queryHandler;
     }
 
     [HttpGet]
@@ -26,8 +29,10 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok();
+        var query = new GetOrderQuery(id);
+        var result = await _queryHandler.HandleAsync(query, cancellationToken);
+        return Ok(result);
     }
 }

@@ -15,7 +15,7 @@ public sealed class CreateOrderHandler
 
     public async Task<CreateOrderResult> HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken)
     {
-        var order = new Order(command.Amount, command.customerId);
+        var order = Order.Create(command.Amount, command.customerId);
         // var orderCreatedEvent = new OrderCreatedEvent(order.OrderNumber, order.CustomerId, order.Amount);
         // var outbox = OutboxMessage.Create(orderCreatedEvent);
         await _orderRepository.AddAsync(order, cancellationToken);
