@@ -14,7 +14,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DBConnection"));
         });
         services.AddScoped<IOrderRepository, OrderRepository>();
-        services.AddScoped<IOutboxRepository, OutboxRepository>();
+        services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }

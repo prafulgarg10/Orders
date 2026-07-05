@@ -1,6 +1,8 @@
-public class Outbox
+using System.Text.Json;
+
+public class OutboxMessage
 {
-    public int Id {get; private set;}
+    public long Id {get; private set;}
     public Guid MessageId {get; private set;}
     public Event EventType {get; private set;}
     public string? Payload {get; private set;}
@@ -8,7 +10,7 @@ public class Outbox
     public DateTime ProcessedAt {get; private set;}
     public bool IsProcesssed {get; private set;}
 
-    public Outbox(Event eventType, string payload)
+    public OutboxMessage(Event eventType, string payload)
     {
         MessageId = new Guid();
         EventType = eventType;
@@ -20,5 +22,10 @@ public class Outbox
     {
         ProcessedAt = DateTime.UtcNow;
         IsProcesssed = true;
+    }
+
+    public static OutboxMessage Create(OrderCreatedEvent evt)
+    {
+        return new OutboxMessage(Event.OrderCreated, JsonSerializer.Serialize(evt));
     }
 }

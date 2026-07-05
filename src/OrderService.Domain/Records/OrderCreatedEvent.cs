@@ -1,0 +1,1 @@
+public record OrderCreatedEvent(Guid OrderNumber, int CustomerId, decimal Amount);

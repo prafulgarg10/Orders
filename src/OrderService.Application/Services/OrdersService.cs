@@ -4,18 +4,18 @@ using System.Text.Json;
 public class OrdersService : IOrderService
 {
     private IOrderRepository _repo;
-    private IOutboxRepository _outboxRepo;
+    private IOutboxMessageRepository _outboxRepo;
     private IUnitOfWork _unitOfWorkRepo;
-    public OrdersService(IOrderRepository repo, IOutboxRepository outboxRepository, IUnitOfWork unitOfWork)
+    public OrdersService(IOrderRepository repo, IOutboxMessageRepository outboxRepository, IUnitOfWork unitOfWork)
     {
         _repo = repo;
         _outboxRepo = outboxRepository;
         _unitOfWorkRepo = unitOfWork;
     }
 
-    public async Task<List<OrderResponse>> GetAllOrders()
+    public async Task<List<OrderResponse>> GetAllOrders(CancellationToken cancellationToken)
     {
-        var orders = await _repo.GetAllAsync();
+        var orders = await _repo.GetAllAsync(cancellationToken);
         var result = orders.Select(o => new OrderResponse
         {
             OrderId = o.OrderId,
@@ -27,9 +27,9 @@ public class OrdersService : IOrderService
         return result;
     }
 
-    public async Task<OrderResponse?> GetOrderDetail(int id)
+    public async Task<OrderResponse?> GetOrderDetail(int id, CancellationToken cancellationToken)
     {
-        var order = await _repo.GetByIdAsync(id);
+        var order = await _repo.GetByIdAsync(id, cancellationToken);
         if (order != null)
         {
             var result = new OrderResponse
@@ -45,25 +45,22 @@ public class OrdersService : IOrderService
         return null;
     }
 
-    public async Task<OrderResponse?> PlaceOrder(OrderRequest orderRequest)
+    public async Task<OrderResponse?> PlaceOrder(OrderRequest orderRequest, CancellationToken cancellationToken)
     {
         if (orderRequest != null)
         {
             Order order = new Order(orderRequest.Amount, 1);
-            await _repo.AddAsync(order);
+            await _repo.AddAsync(order, cancellationToken);
 
-            OutboxOrderPayload payload = new OutboxOrderPayload()
-            {
-                OrderNumber = order.OrderNumber,
-                CustomerId = order.CustomerId,
-                Amount = order.Amount
-            };
-            Outbox outbox = new Outbox(Event.OrderCreated, JsonSerializer.Serialize(payload));
-            await _outboxRepo.AddAsync(outbox);
+            //to save message to outboxmessage table so that it can be consumed by the consumers.
+            var evt = new OrderCreatedEvent(order.OrderNumber, order.CustomerId, order.Amount);
+            OutboxMessage outbox = OutboxMessage.Create(evt);
+            await _outboxRepo.AddAsync(outbox, cancellationToken);
 
-            await _unitOfWorkRepo.SaveChangesAsync();
+            //save all the changes in one transaction. If failed then all changes will be reverted.
+            await _unitOfWorkRepo.SaveChangesAsync(cancellationToken);
 
-            OrderResponse? response = await GetOrderDetail(order.OrderId);
+            OrderResponse? response = await GetOrderDetail(order.OrderId, cancellationToken);
             return response;
         }
         return null;

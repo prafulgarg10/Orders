@@ -11,16 +11,16 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Orders()
+    public async Task<IActionResult> Orders(CancellationToken cancellationToken)
     {
-        List<OrderResponse> response = await _orderService.GetAllOrders();
+        List<OrderResponse> response = await _orderService.GetAllOrders(cancellationToken);
         return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Orders([FromRoute] int id)
+    public async Task<IActionResult> Orders([FromRoute] int id, CancellationToken cancellationToken)
     {
-        OrderResponse? response = await _orderService.GetOrderDetail(id);
+        OrderResponse? response = await _orderService.GetOrderDetail(id, cancellationToken);
         if (response != null)
         {
             return Ok(response);
@@ -29,9 +29,9 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Orders([FromBody] OrderRequest orderRequest)
+    public async Task<IActionResult> Orders([FromBody] OrderRequest orderRequest, CancellationToken cancellationToken)
     {
-        OrderResponse? response = await _orderService.PlaceOrder(orderRequest);
+        OrderResponse? response = await _orderService.PlaceOrder(orderRequest, cancellationToken);
         if (response != null)
         {
             return Ok(response);
