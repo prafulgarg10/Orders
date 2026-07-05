@@ -27,6 +27,6 @@ public class OutboxMessage
 
     public static OutboxMessage Create(IDomainEvent evt)
     {
-        return new OutboxMessage(evt.GetType().FullName, JsonSerializer.Serialize(evt));
+        return new OutboxMessage(evt.GetType().FullName, JsonSerializer.Serialize((object)evt));
     }
 }
