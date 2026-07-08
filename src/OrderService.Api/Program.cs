@@ -1,5 +1,6 @@
 using OrderService.Application;
 using OrderService.Infrastructure;
+using OrderService.Infrastructure.Messaging.Topology;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+//to define the exhange when application starts
+var initializer = app.Services.GetRequiredService<IRabbitMqTopologyInitializer>();
+await initializer.InitializeAsync();
 
 //app.UseHttpsRedirection();
 
