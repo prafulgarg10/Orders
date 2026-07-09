@@ -1,6 +1,5 @@
 
 using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrderService.Infrastructure.Messaging.Configurations;
@@ -22,7 +21,7 @@ public class RabbitMqPublisher : IMessagePublisher
         _logger = logger;
         _publisherConfirmationAwaiter = publisherConfirmationAwaiter;
     }
-    public async Task PublishAsync(string routingKey, object message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(string routingKey, string message, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -37,10 +36,9 @@ public class RabbitMqPublisher : IMessagePublisher
         }
     }
 
-    private async Task PublishInternalAsync(IChannel channel, string routingKey, object message, CancellationToken cancellationToken = default)
+    private async Task PublishInternalAsync(IChannel channel, string routingKey, string message, CancellationToken cancellationToken = default)
     {
-        var json = JsonSerializer.Serialize(message);
-            var body = Encoding.UTF8.GetBytes(json);
+            var body = Encoding.UTF8.GetBytes(message);
             var properties = new BasicProperties
             {
                 Persistent = true,

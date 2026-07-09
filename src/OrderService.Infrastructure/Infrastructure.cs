@@ -25,7 +25,9 @@ public static class DependencyInjection
         services.AddSingleton<RabbitMqConnection>();
         services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
         services.AddSingleton<IRabbitMqTopologyInitializer, RabbitMqTopologyInitializer>();
-        services.AddScoped<IPublisherConfirmationAwaiter, PublisherConfirmationAwaiter>();
+        services.AddSingleton<IPublisherConfirmationAwaiter, PublisherConfirmationAwaiter>();
+
+        services.AddHostedService<OutboxPublisherBackgroundService>();
         return services;
     }
 }

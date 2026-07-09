@@ -1,5 +1,5 @@
 namespace OrderService.Infrastructure.Messaging.Publisher;
 public interface IMessagePublisher
 {
-    Task PublishAsync(string routingKey, object message, CancellationToken cancellationToken = default);
+    Task PublishAsync(string routingKey, string message, CancellationToken cancellationToken = default);
 }

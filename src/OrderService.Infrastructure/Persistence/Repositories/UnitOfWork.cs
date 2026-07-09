@@ -1,6 +1,5 @@
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OrderService.Domain.Common;
+using OrderService.Infrastructure.Messaging.Routing;
 
 namespace OrderService.Infrastructure.Persistence.Repositories
 {
@@ -27,7 +26,8 @@ namespace OrderService.Infrastructure.Persistence.Repositories
             //Create the Outbox message here
             foreach (var domainEvent in domainEvents)
             {
-                var outbox = OutboxMessage.Create(domainEvent);
+                var routingKey = RoutingKeyMapper.GetRoutingKey(domainEvent);
+                var outbox = OutboxMessage.Create(domainEvent, routingKey);
                 await _context.OutboxMessages.AddAsync(outbox, cancellationToken);
             }
 
