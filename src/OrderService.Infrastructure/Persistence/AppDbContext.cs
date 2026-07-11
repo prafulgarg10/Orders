@@ -6,7 +6,12 @@ public class AppDbContext : DbContext
     {
         
     }
-
     public DbSet<Order> Orders {get; set;}
     public DbSet<OutboxMessage> OutboxMessages {get; set;}
+    public DbSet<OrderItem> OrderItems {get; set;}
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(AppDbContext).Assembly);
+    }
 }

@@ -7,7 +7,7 @@ public static class RoutingKeyMapper
     {
         return domainEvent switch
         {
-            OrderCreatedEvent => "order.created",
+            OrderCreatedDomainEvent => "order.created",
             _ => throw new NotSupportedException($"No routing key confgured for {domainEvent.GetType().Name}")
         };
     }

@@ -12,7 +12,7 @@ public sealed class GetOrderHandler
         var response = await _orderRepository.GetByOrderNumberAsync(query.OrderNumber, cancellationToken);
         if (response != null)
         {
-            return new GetOrderResult(response.OrderNumber, response.Amount, response.Status.ToString(), response.CreatedAt);
+            return new GetOrderResult(response.OrderNumber, response.Amount, response.Status.ToString(), response.CreatedAt, response.OrderItems.Select(i => new GetOrderItem(i.ProductId, i.Quantity, i.UnitPrice)).ToList());
         }
         return null;
     }

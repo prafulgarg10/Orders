@@ -25,10 +25,9 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] OrderRequest orderRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateOrderCommand createOrderCommand, CancellationToken cancellationToken)
     {
-        var command = new CreateOrderCommand(orderRequest.CustomerId, orderRequest.Amount);
-        var result = await _createOrderHandler.HandleAsync(command, cancellationToken);
+        var result = await _createOrderHandler.HandleAsync(createOrderCommand, cancellationToken);
         return CreatedAtAction(nameof(GetById), new {id = result.OrderNumber}, result);
     }
 

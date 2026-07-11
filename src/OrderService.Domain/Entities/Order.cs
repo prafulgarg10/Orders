@@ -3,38 +3,45 @@ using OrderService.Domain.Common;
 
 public class Order : BaseEntity
 {
-    [Key]
     public int OrderId {get; private set;}
     public Guid OrderNumber {get; private set;}
     public int CustomerId {get; private set;}
     public decimal Amount {get; private set;}
     public Status Status {get; private set;}
     public DateTime CreatedAt {get; private set;}
-
-    public Order(decimal amount, int customerId)
+    private readonly List<OrderItem> _items = new();
+    public IReadOnlyCollection<OrderItem> OrderItems => _items.AsReadOnly();
+    public void AddItem(int productId, int quantity, decimal unitPrice)
     {
-        if (amount <= 0)
-        {
-            throw new ArgumentException("Please provide correct amount");
-        }
-        Amount = amount;
+        _items.Add(new OrderItem(productId, quantity, unitPrice));
+    }
+    private Order(){}
+    public Order(int customerId)
+    {
         CustomerId = customerId;
         Status = Status.Created;
         CreatedAt = DateTime.UtcNow;
         OrderNumber = Guid.NewGuid();
     }
 
-    public static Order Create(decimal amount, int customerId)
-    {
-        var order = new Order(amount, customerId);
-        order.MarkAsCreated();
-        return order;
-    }
-
     private void MarkAsCreated()
     {
         //For letting the unit of work to create the outbox entry
-        RaiseDomainEvent(new OrderCreatedEvent(OrderNumber, CustomerId, Amount));
+        RaiseDomainEvent(new OrderCreatedDomainEvent(OrderNumber, CustomerId, Amount, OrderItems.Select(i => new Items(i.ProductId, i.Quantity)).ToList()));
+    }
+
+    public void Place()
+    {
+        if (Status != Status.Created)
+        {
+            throw new InvalidOperationException("Order already placed");
+        }
+        if (OrderItems.Count == 0)
+        {
+            throw new InvalidOperationException("Order must contain atleast one item");
+        }
+        Amount = OrderItems.Sum(o => o.UnitPrice*o.Quantity);
+        MarkAsCreated();
     }
 
     public void Complete()
