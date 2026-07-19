@@ -13,9 +13,9 @@ public class ProductService : IProductService
 
     public async Task<IReadOnlyList<ProductDTO>> GetProductsAsync(IEnumerable<int> productIds, CancellationToken cancellationToken)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/products", productIds, cancellationToken);
+        var response = await _httpClient.PostAsJsonAsync($"api/products", new { productIds = productIds }, cancellationToken);
         response.EnsureSuccessStatusCode();
-        var products = await response.Content.ReadFromJsonAsync<List<ProductDTO>>(cancellationToken: cancellationToken);
-        return products ?? new List<ProductDTO>();
+        var result = await response.Content.ReadFromJsonAsync<ProductsDTO>(cancellationToken: cancellationToken);
+        return result?.products ?? new List<ProductDTO>();
     }
 }

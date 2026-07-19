@@ -16,7 +16,7 @@ public sealed class CreateOrderHandler
     public async Task<CreateOrderResult> HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken)
     {
         //get the product details from ProductService
-        var productIds = command.items.Select(i => i.productId).Distinct();
+        var productIds = command.items.Select(i => i.productId).Distinct().ToList();
         var products = await _productService.GetProductsAsync(productIds, cancellationToken);
         Dictionary<int, ProductDTO> productDictionary = products.ToDictionary(p => p.ProductId);
 

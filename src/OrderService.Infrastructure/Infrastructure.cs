@@ -33,7 +33,6 @@ public static class DependencyInjection
             client.BaseAddress = new Uri(configuration.GetSection("ProductService").GetValue<string>("BaseUrl"));
             client.Timeout = TimeSpan.FromSeconds(10);
         });
-        services.AddScoped<IProductService, ProductService>();
 
         services.AddHostedService<OutboxPublisherBackgroundService>();
         return services;

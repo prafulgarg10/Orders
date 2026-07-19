@@ -1,5 +1,3 @@
-public sealed class ProductDTO
-{
-    public int ProductId { get; set; }
-    public decimal UnitPrice { get; set; }
-}
+public sealed record ProductsDTO(List<ProductDTO> products);
+
+public sealed record ProductDTO(int ProductId, decimal UnitPrice);
