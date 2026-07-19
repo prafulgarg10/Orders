@@ -27,7 +27,7 @@ public class Order : BaseEntity
     private void MarkAsCreated()
     {
         //For letting the unit of work to create the outbox entry
-        RaiseDomainEvent(new OrderCreatedDomainEvent(OrderNumber, CustomerId, Amount, OrderItems.Select(i => new Items(i.ProductId, i.Quantity)).ToList()));
+        RaiseDomainEvent(new OrderCreatedDomainEvent(OrderNumber, CustomerId, Amount, OrderItems.Select(i => new Items(i.ProductId, i.Quantity, i.UnitPrice)).ToList()));
     }
 
     public void Place()

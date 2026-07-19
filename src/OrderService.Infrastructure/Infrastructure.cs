@@ -6,6 +6,7 @@ using OrderService.Infrastructure.Messaging.Connections;
 using OrderService.Infrastructure.Messaging.Publisher;
 using OrderService.Infrastructure.Messaging.Topology;
 using OrderService.Infrastructure.Persistence.Repositories;
+using OrderService.Infrastructure.Persistence.Services;
 
 namespace OrderService.Infrastructure;
 
@@ -26,6 +27,13 @@ public static class DependencyInjection
         services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
         services.AddSingleton<IRabbitMqTopologyInitializer, RabbitMqTopologyInitializer>();
         services.AddSingleton<IPublisherConfirmationAwaiter, PublisherConfirmationAwaiter>();
+
+        services.AddHttpClient<IProductService, ProductService>(client =>
+        {
+            client.BaseAddress = new Uri(configuration.GetSection("ProductService").GetValue<string>("BaseUrl"));
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<IProductService, ProductService>();
 
         services.AddHostedService<OutboxPublisherBackgroundService>();
         return services;
