@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OrderService.Application.Services;
+using OrderService.Infrastructure.Caching.Configurations;
 using OrderService.Infrastructure.Messaging.Configurations;
 using OrderService.Infrastructure.Messaging.Connections;
 using OrderService.Infrastructure.Messaging.Publisher;
 using OrderService.Infrastructure.Messaging.Topology;
 using OrderService.Infrastructure.Persistence.Repositories;
 using OrderService.Infrastructure.Persistence.Services;
+using StackExchange.Redis;
 
 namespace OrderService.Infrastructure;
 
@@ -28,9 +32,26 @@ public static class DependencyInjection
         services.AddSingleton<IRabbitMqTopologyInitializer, RabbitMqTopologyInitializer>();
         services.AddSingleton<IPublisherConfirmationAwaiter, PublisherConfirmationAwaiter>();
 
+        //bind the options file here
+        services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        //add the redis connection here
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<RedisOptions>>();
+            var configOptions = new ConfigurationOptions
+            {
+                EndPoints = {options.Value.ConnectionString},
+                AbortOnConnectFail = options.Value.AbortOnConnectionFail,
+                ConnectRetry = options.Value.ConnectRetry,
+                ReconnectRetryPolicy = new LinearRetry((int)TimeSpan.FromMinutes(2).TotalMilliseconds)
+            };
+            return ConnectionMultiplexer.Connect(configOptions);
+        });
+        services.AddSingleton<ICacheService, RedisCacheService>();
+
         services.AddHttpClient<IProductService, ProductService>(client =>
         {
-            client.BaseAddress = new Uri(configuration.GetSection("ProductService").GetValue<string>("BaseUrl"));
+            client.BaseAddress = new Uri(configuration.GetSection("ProductService").GetValue<string>("BaseUrl")!);
             client.Timeout = TimeSpan.FromSeconds(10);
         });
 
